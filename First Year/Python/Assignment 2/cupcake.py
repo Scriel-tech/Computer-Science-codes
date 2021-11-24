@@ -1,3 +1,6 @@
+#Richmond Arthur
+#Assignment on conditional Statements
+
 print('Welcome to the 30 Second Rule Expert')
 print('------------------------------------')
 print('Answer the following questions by selecting from among the options.')
