@@ -1,4 +1,4 @@
-# Program to do mathematics
+# Program to do simple mathematics
 # Richmond Arthur
 # ARTRIC001
 # 7 March 2017
