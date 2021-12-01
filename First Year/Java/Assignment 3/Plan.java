@@ -1,7 +1,8 @@
 /* Richmond Arthur
 ARTRIC001
 15 August 2018
-Program to create a mobile Account class supported by a Plan class */
+Program to create a mobile Account class supported by a Plan class
+The Plan class is simply the mobile plan the user is on*/
 
 public class Plan
 {
