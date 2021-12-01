@@ -2,8 +2,9 @@
 /**
  * Simple representation of a rational number.
  * 
- * @author Stephan Jamieson
+ * @author Stephan Jamieson & Richmond Arthur
  * @version 31/7/15
+ *The add and multiply functions were done by Richmond, while all else were done by Stephan
  */
 public class Rational {
 
