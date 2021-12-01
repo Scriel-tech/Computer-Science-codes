@@ -1,7 +1,7 @@
 /* Richmond Arthur
 ARTRIC001
 2 August 2018
-Program to create a class */
+Program to create a simple Student class to Store and retrieve info*/
 
 public class Student
 {
