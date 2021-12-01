@@ -1,7 +1,9 @@
 /*Richmond Arthur
 ARTRIC001
 12 AUG 2018
-Program to make class Clock Display */
+Program to make class Clock Display 
+This exercise concerns constructing the display component of a digital clock that uses the 24 hour
+system */
 
 public class ClockDisplay
 {
