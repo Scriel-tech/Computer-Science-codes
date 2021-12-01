@@ -1,7 +1,7 @@
 /* Richmond Arthur
  ARTRIC001
  06 August 2018
- Program to create a UberService class */
+ Program to create a UberService class uses default constructor */
  
 public class UberService
 {
