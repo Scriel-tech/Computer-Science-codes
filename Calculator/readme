@@ -1,0 +1,12 @@
+The main file is the Calculator file, it initialises the Calculator_GUI file which creates the program. 
+There is are files to create the number Panel, the sign panel and the view Panel. These are then to the main Panel.
+There is also a file InnerCalculator which deals with the calculations inputed.
+
+#What I haven't done yet
+Implement the delete button
+Allow the user more freedom to input the equation using the keyboard 
+Better frontend
+Divide by 0 error message.
+
+#Do's
+Try to use the buttons only
