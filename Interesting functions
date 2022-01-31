@@ -1,0 +1,53 @@
+#Given a array of string input e.g arithmetic_arranger(["32 + 698", "3801 - 2", "45 + 43", "123 + 49"]), it will convert it to a standard visual equation taught in primary school, to show the solution set soln_retun to True
+
+def arithmetic_arranger(problems, soln_return = False):
+    first = [None] * len(problems)
+    last = [None] * len(problems)
+    signs = [None] * len(problems)
+    solution_first = ""
+    solution_last = ""
+    solution = ""
+    dashes = ""
+    between_spaces = " " * 4
+
+    j = 0
+    for i in problems:
+        a = i.split(" ")
+        first[j] = a[0]
+        signs[j] = a[1]
+        last[j] = a[2]
+        j = j+1
+    
+    for i in range(len(first)):
+        len_diff = len(first[i]) > len(last[i])
+        if(len_diff):
+            len_diff = len(first[i])
+        else:
+            len_diff = len(last[i])
+
+
+        d_distance = "-" * (len_diff+2)
+        dashes = dashes + between_spaces + d_distance.rjust(len_diff + 2)
+
+        solution_first = solution_first + between_spaces  +  first[i].rjust(len_diff + 2)
+
+        solution_last = solution_last + between_spaces + signs[i] + last[i].rjust(len_diff + 1)
+
+        if signs[i] == "+":
+          number = int(first[i]) + int(last[i]) 
+        elif signs[i] == "-":
+          number = int(first[i]) - int(last[i])
+
+        solution = solution + between_spaces + str(number).rjust(len_diff+2)
+
+    solution_first = solution_first[4:]
+    solution_last = solution_last[4:]
+    solution = solution[4:]
+    dashes = dashes[4:]
+
+    if soln_return == True:
+      arranged_problems = solution_first + "\n" + solution_last + "\n" + dashes + "\n" + solution
+    else:
+      arranged_problems = solution_first + "\n" + solution_last + "\n" + dashes
+        
+    return arranged_problems
