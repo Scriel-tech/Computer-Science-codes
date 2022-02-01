@@ -1,0 +1,72 @@
+#THis function takes an intitial time in 12 hour format and it adds a duration to it, returning the new time. There is an optional parameter called day for which you can pass in the day of the week
+#Eg. print(add_time("3:30 PM", "2:12", "Monday"))
+
+def add_time(start, duration, day = ""):
+    days_of_week = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
+    first = start.split(" ")[0].split(":")
+    time_space = start.split(" ")[1]
+    second = duration.split(":")
+    hour_ex = 0
+    new_day = False
+
+    minute_solution = int(first[1]) + int(second[1])
+    
+    #Calculate the new minute
+    if minute_solution > 59:
+      hour_ex = minute_solution//60 
+      minute_solution %= 60
+    minute_solution = str(minute_solution).rjust(2,"0")
+  
+    hour_solution = int(first[0]) + int(second[0]) + hour_ex
+
+    if(time_space == "PM"):
+      hour_solution += 12
+
+    #Calculate the new hour
+    days = hour_solution // 24
+    if hour_solution >24:
+      new_day = True
+      hour_solution = hour_solution % 24
+      if hour_solution>=0 and hour_solution<12:
+        time_space = "AM"
+      else:
+        time_space = "PM"
+
+    elif hour_solution > 11 and hour_solution < 24:
+      hour_solution = hour_solution % 12
+      time_space = "PM"
+    
+    else:
+      hour_solution = hour_solution % 12
+    
+    hour_solution = str(hour_solution % 12)#.rjust(2,"0")
+
+    if hour_solution == "0":
+      hour_solution = "12"
+
+    #If a day was given, then find the new day
+    if day == "":
+      if days==0:
+        new_time = hour_solution+ ":"+ minute_solution + " "+ time_space
+      elif days ==1:
+        new_time = hour_solution+ ":"+ minute_solution + " "+ time_space + " (next day)"
+      else:
+        new_time = hour_solution+ ":"+ minute_solution + " "+ time_space + " (" + str(days) + " days later)"
+    else:
+      j = 0
+      for i in range(len(days_of_week)):
+        if days_of_week[i].upper() == day.upper():
+          break
+        else:
+          j+=1
+      j = (j + days)%7
+      new_day = days_of_week[j]
+
+      if days==0:
+        new_time = hour_solution+ ":"+ minute_solution + " "+ time_space + ", " + new_day
+      elif days==1:
+        new_time = hour_solution+ ":"+ minute_solution + " "+ time_space + ", " + new_day + " (next day)"
+      else:
+        new_time = hour_solution+ ":"+ minute_solution + " "+ time_space +", " + new_day + " (" + str(days) + " days later)"
+
+    return new_time
