@@ -1,0 +1,6 @@
+This was a simple website I created this time using the shiny package in R, It's a website that would allow you to import a data frame and then do some analyses.
+Currently, what has been implemented is the time analysis section only, not to great detail. And the data is fixed, so we need to allow the user to import their own data and 
+then have them choose the variables they would want to be included in the analysis. And because only the Time Series section is implemented, 
+this is done because the default data is longitudinal, we would need another tab that would allow for cross-sectional analysis.
+
+Run the app file to view the website
