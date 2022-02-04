@@ -1,0 +1,574 @@
+#Code used to create plots to put legend on top
+add_legend <- function(...) {
+  opar <- par(fig=c(0, 1, 0, 1), oma=c(0, 0, 0, 0), 
+              mar=c(0, 0, 0, 0), new=TRUE)
+  on.exit(par(opar))
+  plot(0, 0, type='n', bty='n', xaxt='n', yaxt='n')
+  legend(...)
+}
+
+#This will draw up the template for our setting
+create_corners = function(data)
+{
+  n = nrow(data)
+  n_row = sqrt(n)
+  x = seq(0,n_row,1)
+  y = seq(0,n_row,1)
+  corners = expand.grid(x,y)
+  z = seq(n+1, (n+nrow(corners)), 1)
+  corners = cbind(z, corners)
+  colnames(corners) = colnames(data)
+  return(corners)
+}
+
+
+plot_base = function(data, main = "", corners = T)
+  #Creates a lattice of points data required is x and y location
+{
+  n = nrow(data)
+  if(sqrt(n) - floor(sqrt(n)) == 0)
+  {
+    n_row = sqrt(n)
+    x_lim = n_row
+    y_lim = n_row
+  }else{
+    x_lim = max(data[,2]) + 1
+    y_lim = max(data[,3]) + 1
+  }
+
+  plot(0,0, type = "n", xlim = c(0,x_lim), ylim = c(0,y_lim))
+  for(i in 0:x_lim)
+  {
+    abline(v = i)
+    abline(h = i)
+  }
+  
+  #Build the corner points and plot them
+  if(corners == T)
+  {
+    corners = create_corners(data)
+    points(corners[,2], corners[,3], pch = 20, col = "purple", cex = 3)  
+  }
+}
+
+
+#Setting up the grid for all the points. Plot1
+plot_points = function(data, color = "black", main = "", corners =T)
+{
+  plot_base(data, main = main, corners = T)
+  points(data[,2], data[,3], pch = 20, col = color, cex = 4)
+}
+
+#Used to plot the design with a different color. Plot 2
+plot_design_points = function(data, design, color = "black", main = "", corners = T)
+{
+  #Set margins
+  par(mar = c(5, 4, 4, 0.5))
+  
+  plot_base(data, main = main, corners = corners)
+  points(data[,2], data[,3], pch = 20, cex = 3.2)
+  points(design[,2], design[,3], pch = 20, col = color, cex = 4)
+  
+  #add legend
+  if(corners ==T)
+  {
+    add_legend("topright", legend=c("Monitor","No monitor", "Corner Monitor"), pch=20, 
+               col=c(color, "black", "purple"),
+               horiz=TRUE, bty='n', cex=1.9) 
+  }else{
+    add_legend("topright", legend=c("Monitor","No monitor"), pch=20, 
+               col=c(color, "black"),
+               horiz=TRUE, bty='n', cex=1.9)
+  }
+}
+
+
+#Used to plot the 3 sets of 4 observations after enumeration. Plot 3
+plot_enumerated = function(data, design, best, colour, main = "", corners = T)
+{
+  set_size = length(best)/length(colour)
+  
+  #Set margins
+  par(mar = c(5, 4, 4, 0.2))
+  
+  plot_base(data, main = main, corners = corners)
+  points(data[,2], data[,3], pch = 20, cex = 3.2)
+  
+  col = rep(colour, each = set_size)
+  for(i in 1:length(best))
+  {
+    current = best[i]
+    temp = design[design[,1] == current,]
+    points(temp[,2], temp[,3], pch = 20, col = col[i], cex = 4)
+  }
+  
+  #Add the legend
+  add_legend("topright", legend=c("Monitor 1", "Monitor 2", "Monitor 3"), pch=20, 
+             col=colour,
+             horiz=TRUE, bty='n', cex=1.5)
+  
+}
+
+
+#Used to calculate the distance of any 2 points, input is a vector. 1 = point number, 2 = x-coordinate, 3 = y-coordinate
+distance_formula = function(a,b)
+{
+  x1 = a[2]
+  y1 = a[3]
+  x2 = b[2]
+  y2 = b[3]
+  return(sqrt((x1-x2)^2+(y1-y2)^2))
+}
+
+#Used to calculate the distance matrix of a spatial points
+distance = function(data)
+{
+  n = nrow(data)
+  distance_matrix = matrix(nrow = n, ncol = n)
+  d = c()
+  
+  for(i in 1:n)
+  {
+    for(j in 1:n)
+    {
+      n1 = data[i,]
+      n2 = data[j,]
+      d[(i-1)*n+j] = distance_formula(n1,n2)
+      #distance_matrix[i,j] = 1
+    }
+  }
+  d = matrix(d, nrow = n, byrow = T)
+  return(d)
+}
+
+
+#Used to find the design matrix of given a set of points.
+design_function = function(design, data, distance_matrix)
+{
+  #Design matrix consist of 4 information, the point, x and y co-ordinates and the minimum distance
+  data = data.frame(data)
+  
+  #Adding the points and their x and y - co-ordinates
+  design_matrix = data%>%
+    filter(data[,1] %in% design)
+  #Find the minimum distances for the design points
+  distances = crit(design, distance_matrix)
+
+    #Column bind the design matrix and the minimum distances
+  design_matrix = cbind(design_matrix, distances)
+  colnames(design_matrix) = c("point", "x", "y", "distance")
+  return(design_matrix)
+}
+
+#Algorithm used to find the maximin design
+exchange = function(design, candidate, data, distance_matrix)
+{
+  min_design_occurs = 20
+  check = 1
+  min = Inf
+  
+  runs = 1
+  replace = 3
+  Dc = design_function(design, data, distance_matrix)
+  no = 1
+  best = NULL
+  
+    while(replace > 2)
+  {
+    if(check > min_design_occurs)
+    {
+      return(best)
+      break
+    }
+    
+    replace = 0
+    
+    for(i in 1:length(design))
+    {
+      for(j in 1:length(candidate))
+      {
+        #print(runs)
+        runs = runs + 1
+        temp = design[i]
+        design[i] = candidate[j]
+        candidate[j] = temp
+        
+        Dp = design_function(design, data, distance_matrix)
+        
+        if(min(Dc$distance)<=min(Dp$distance))
+        {
+          #print(replace)
+          Dc = Dp
+          replace = replace + 1
+          if(sum(Dc[,4])< min)
+          {
+            min = sum(Dc[,4])
+            min_design_occurs = 20
+            check = 0
+            best = Dc
+          }else if(sum(Dc[,4]) == min){
+            check = check + 1
+          }
+        }else{
+          temp = design[i]
+          design[i] = candidate[j]
+          candidate[j] = temp
+        }
+      }
+    }
+    if(replace < 4)
+    {
+      break;
+    }
+    
+  }
+  #print(paste("The number of iterations is: ", runs))
+  return(Dc)
+}
+
+
+choose_design <- function(d, m = 10, data, initial, distance_matrix)
+{
+  #m = The number of optimal designs to create
+  optimal_design = initial
+  
+  #Find the distance matrix
+  set.seed(1204)
+  for(i in 1:m)
+  {
+    #Get design and candidate sets
+    n = nrow(data)
+    num = 1:n
+    design_12 = sort(sample(num, d, replace = F)) #Design points
+    candidate = num[-design_12]                    #Candidate points
+    
+    #Draws the initial design_12 points in the grid and places it into a matrix
+    initial_design = matrix(points[data[,1] %in% design_12], ncol = 3, byrow = F)
+    
+    #Perform one iteration
+    Dc = exchange(design_12,candidate, data)
+    
+    if(max(Dc$distance) > max(optimal_design$distance))
+    {
+      optimal_design = Dc
+    }
+  }
+  return(optimal_design)
+}
+
+
+#Enumeration
+#Finds the complement of a subset of a set. SO if the set is [1,2,3,4] and the subset is [1,2], then the function returns [3,4]
+complement = function(set, vector)
+{
+  compl = vector[vector %nin% set]
+  return(compl)
+}
+
+
+combinations = function(design, size)
+{
+  subsets = t(combn(design, size))
+  return(subsets)
+}
+
+combine_comb = function(comb, compl)
+  #This function combines comb with every row of compl
+{
+  n = nrow(comb)*nrow(compl)
+  c = ncol(comb)+ncol(compl) 
+  final = c()
+  for(i in 1:nrow(comb))
+  {
+    for(j in 1:nrow(compl))
+    {
+      temp = unique(c(comb[i,],compl[j,]))
+      if(length(temp) == c)
+      {
+        temp = c(comb[i,],compl[j,])
+        final = rbind(final, temp)
+      }
+    }
+  }
+  return(final)
+}
+
+#This is a recursive function
+#So given a design which is an array of numbers [1,2,3,4,5,6,7,8], let N be the size of the design.
+#And given a set_size which is the size of each subset, it is assumed that this size is a factor of N.
+#And let n = N/set_size, thus n is the number of sub arrays to create
+#This function will find all the unique combinations of all the n-sized sub-arrays.
+enumeration_inner = function(design, set_size)
+{
+  if(length(design) == set_size)
+  {
+    return(matrix(design, ncol = set_size, nrow = 1))
+  }
+  combs = combinations(design, set_size)
+  compl = t(apply(combs, 1, complement, vector = design))
+  total = list()
+  
+  n = nrow(combs)
+  for(i in 1:nrow(compl))
+  {
+    lower = enumeration_inner(compl[i,], set_size)
+    temp = combine_comb(combs, lower)
+    if(is.null(temp) ==  F)
+    {
+      total[[i]] = temp
+    }
+  }
+  column = ncol(combs) + ncol(compl)
+  
+  if(length(total) > 0)
+  {
+    final = do.call(rbind, total)
+    return(final)
+  }
+  return(matrix())
+}
+
+#This outer function is finding the minimum distance given the distances of the enumerated designs from the design set.
+enumeration = function(design, set_size, distance)
+{
+  start_time = Sys.time()
+  #We are making the function general for any number of subsets
+  minisets = c()
+  for(i in 1:set_size)
+  {
+    minisets[i] = paste("set",i)
+  }
+  points = design[,1]
+  print("Enumeration inner: Start")
+  all_sets = enumeration_inner(points, set_size)
+  print("Enumeration inner: Done")
+  #Used to separate the design into p sets of k. We use it for 3 sets of 4
+  design_length = length(points)
+  input = 1:design_length
+  multiples = (input %% set_size) == 0
+  cuts = input[multiples]
+  cuts = c(0,cuts)
+  max = 1
+  max_position = -Inf
+  temp = c(0,0,0)
+  
+  for(i in 1:nrow(all_sets))
+  {
+    minisets_min_distances = c()
+    for(j in 1:(length(cuts)-1))
+    {
+      a = cuts[j]+1
+      b = cuts[j+1]
+      subset = all_sets[i,][a:b]
+      design = crit(subset, distance)
+      minisets_min_distances[j] = min(design)
+    }
+    
+    #https://stackoverflow.com/questions/12375831/algorithm-to-separate-items-of-the-same-type
+    #Above is the link to the algorithm used.
+    print(i)
+    diff = minisets_min_distances - temp
+    check = sum(diff>0, na.rm = T)
+    if(check == length(diff))
+    {
+      #max = temp
+      max_position = i
+      temp = minisets_min_distances
+    }
+  }
+  end_time = Sys.time()
+  print(paste("Enimeration Time:",end_time - start_time))
+  return(all_sets[max_position,])
+}
+
+#Returns the minimum design- the set of minimum distances
+#Given a distance matrix, and a subset of points, it calculates the minimum distance for each of the points in the dset vector
+crit = function(dset, distance)
+{
+  distance = data.frame(distance)
+  distmat = distance[dset, dset]
+  distmat[distmat == 0] = Inf
+  distmat = data.frame(matrix(unlist(distmat), byrow = T, nrow = nrow(distmat)))
+  mindesign = apply(distmat, 1, min)
+  return(mindesign)
+}
+
+perform_algorithm = function(data, d , m = 10, corners = T)
+  #d = the number of design points
+  #m = the number of optimal designs to compare
+{  
+  #Plot the points
+  plot_points(data, main = "Plot of grid points only", corners = corners)
+
+  #Find the distance matrix
+  distance_matrix = as.data.frame(distance(data))
+  distance_matrix = data.frame(matrix(unlist(distance_matrix), nrow=length(distance_matrix), byrow=TRUE))
+
+  #Get design and candidate sets
+  n = nrow(data)
+  num = 1:n
+  design = sort(sample(num, d, replace = F)) #Design points
+  candidate = num[-design]                    #Candidate points
+  
+  #Draws the initial design_12 points in the grid and places it into a matrix
+  initial_design = as.matrix(data[data[,1] %in% design,])
+  
+  #Draw the points in a grid
+  plot_design_points(data, initial_design, color = "green", main = "Initial Design", corners = corners)
+
+  #Perform one iteration
+  print("Begin Exchange")
+  start_time = Sys.time()
+  Dc = exchange(design,candidate, data,distance_matrix)
+  end_time = Sys.time()
+  print(paste("Exchange Time =", start_time - end_time))  
+  #print("Choose Exchange")
+  #Dc = choose_design(d = d, m = m, data, Dc, distance_matrix)
+  print("Exchange done")
+  rows = as.matrix(Dc[,1])
+  p = data[data[,1] %in% rows,]
+  plot_design_points(data, p, color = "red", main = "Final Design After Exchange Algorithm", corners = corners)
+  
+  return(Dc)
+  # enum = enumeration(Dc, 4, distance_matrix)
+  # colours = c("red", "green","blue")
+  # plot_thesis(data = data, type = "enumerated", design = Dc, best = enum, colour =  colours, main = "Plot of design after Enumeration")
+  # 
+  # return(list(design = Dc,enum = enum))
+}
+
+#Runs a monte-carlo simulation in simulating data, then perfoming kriging with a subset of that data and then using that model to predict for the remaining points and checking the variance between the actual and predicted points.
+bootstrap_MSPE = function(B, design, data, cov_pars, nugget, method = "ML", plot.hist = T, enum = F, set_size = NULL, adds = NULL)
+{
+  #B - Number of bootstrap estimates
+  #design - the design matrix- what is returned from the design_function()
+  #data - n x 3 dataframe/matrix with point number, x and y co-ordinates
+  #cov.pars - Vector with the initial estimates of the partial sill and range.
+  #nugget - initial estimate of the nugget
+  #method - The method used to find the model parameters. Either ML(default) or REML
+  #If enum is T then you must set both set_size and adds
+  #adds is the vector of constant to be added to each different monitor
+  
+  MSPE_estimates = c()
+  b = c()
+  s = c()
+  n = c()
+  r = c()
+  
+  #enum = design$enum
+  #design = design$design
+  
+  for(i in 1:B)
+  {
+    library(geoR)
+    #Simulate points from a Gaussian random field for the whole region
+    sim = grf(nrow(data), grid = data[,2:3], cov.pars = cov_pars, nugget = nugget)
+    
+    if(enum == T)
+    {
+      a = rep(adds, each = set_size)
+      for(j in 1:length(a))
+      {
+        sim$data[design[j,1]] = sim$data[design[j,1]] + a[j]
+      }
+    }
+
+    #Obtain the simulated points for our design points & monitors
+    design_observations = cbind(design[,1:3], observation = sim$data[design[,1]])
+    #Model with observed(design) points
+    model = likfit(data = design_observations[,4], coords = design_observations[,2:3], ini.cov.pars = cov_pars, nugget = nugget, lik.method = method)
+    model_pars = model$cov.pars
+    locations = data[data[,1] %nin% design_observations[,1],]
+
+    pred_ML = krige.conv(coords = design_observations[,2:3], data = design_observations[,4], locations = locations[,2:3], krige = krige.control(cov.pars = model_pars))
+    unobserved_points = data[,1] %nin% design_observations[,1]
+    prediction_data = cbind(data[unobserved_points,], observed = sim$data[unobserved_points], predicted = pred_ML$predict)
+    squared_prediction_error = sum((prediction_data[,4] - prediction_data[,5])^2)
+    MSPE_estimates[i] = squared_prediction_error/nrow(prediction_data)
+
+    n[i] = model$nugget
+    s[i] = model$sigmasq
+    r[i] = model$phi
+    b[i] = model$beta
+
+  }
+  plot =plot_intensity(data, design, sim$data)
+  plot_end = plot_intensity(data, design, pred_ML$predict)
+  shap.test = shapiro.test(MSPE_estimates)$p.value
+  print(paste("Shapiro Wilks:", shap.test))
+  # if(plot.hist  == T)
+  # {
+  #   hist(MSPE_estimates)
+  # }else{
+  #   return(MSPE_estimates)
+  # }
+  return(list(MSPE_estimates = MSPE_estimates,beta = b, range = r, sill = s, nugget = n, sim = sim,  EMPSE = (prediction_data[,4] - prediction_data[,5])^2, sim_plot = plot, pred_plot = plot_end, pred = pred_ML$predict, shapiro_value = shap.test))
+}
+
+#Plot the simulated points
+plot_intensity = function(data, design, sim)
+  #data - the lattice data
+  #design - the design points
+  #sim - the values that are simulated for the points
+{
+  #Create new colour scale
+  fun_color_range <- colorRampPalette(c("yellow", "red", "green","blue"))  # Create color generating function
+  my_colors <- fun_color_range(20) 
+  
+  #Plotting the simulated points
+  design_pos = data[,1] %in% design[,1]
+  
+  #sim[design_pos] = -10
+  plot_data = data.frame(cbind(data, sim, Type = ifelse(data[,1] %in% design[,1], 20, 19)))
+  plot_data$Type = as.factor(plot_data$Type) 
+  
+  des_data = data.frame(plot_data[design_pos,])
+  non_des_data = data.frame(plot_data[!design_pos,])
+  name = c("p", "x", "y","sim","Type")
+  colnames(des_data) = name
+  colnames(non_des_data) = name
+  
+  plot = ggplot(non_des_data) +
+          geom_point(aes(x = x, y = y, size = 4, color=sim, shape = Type)) +
+          geom_point(data = des_data, aes(x = x, y = y, size = 4, shape = Type)) +
+          scale_shape_manual(labels = c("Non-Design", "Design"),values = c(20, 18)) +
+          theme(axis.title.x=element_blank(),axis.title.y=element_blank()) +
+          scale_colour_gradientn(colors = my_colors) +
+          scale_size(guide = 'none') +
+          theme_minimal()
+  
+  return(plot)
+}
+
+
+
+#USE DENSITY TO ADD kERNEL TO PLOT
+plot_MSPE = function(data, bins = 22, fill="dodgerblue", color = "black", density_col="red", main = "", save = F, autoc = 1)
+{
+  a = ggplot(data.frame(data), aes(x = data))+
+    geom_histogram(aes(y =..density..),bins=bins, fill=fill, color = color) +
+    geom_density(col=density_col, size = 1.1) +
+    theme_minimal() +
+    labs(title = main, x = "EMSPE")
+  
+  if(save == T)
+  {
+    ggsave(paste("GF_",autoc,".pdf"))
+  }
+  
+  return(a)
+}
+
+
+#Obtaining parameters estimates given a vector data
+parameter_summary <- function(data, col = "black")
+{
+  boxplot(data, col = col)
+  mean = mean(data)
+  l = sort(data)[floor(length(data)*0.025)]
+  u = sort(data)[floor(length(data)*0.975)]
+  
+  sd = sd(data)
+  conf =c(l,u)
+  return(list(mean = mean, conf = conf, sd = sd))
+}
