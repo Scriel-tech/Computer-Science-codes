@@ -1,0 +1,74 @@
+body {
+    /*margin-top: 100px;
+    margin-left: 250px;
+    margin-right: 280px;
+    border: 3px solid #111147;
+    padding-top: 15x;
+    padding-left: 50px;
+    padding-right: 30px;
+    padding-bottom: 70px;*/
+    background: black;
+}
+/*So the poin of the spec is to create a decreasing fade of colors */
+#spec{
+    background: #fff;
+    margin-top: 100px;
+    margin-left: 250px;
+    margin-right: 280px;
+    border: 7px solid #113047;
+    padding-top: 15x;
+    padding-left: 50px;
+    padding-right: 30px;
+    padding-bottom: 70px;
+}
+
+h1{
+    font-size: 60px;
+    font-family: Courier New;
+    padding-left: 45px;
+    text-decoration: underline;
+}
+
+label[for = "surname"]{
+    padding-left: 152px;
+}
+
+label[for = "email"]{
+    padding-left: 152px;
+}
+
+label[for = "confirmPassword"]{
+    padding-left: 150px;
+}
+
+input[name = "age"]{
+    width: 204px;
+}
+
+input[name = "name"]{
+    width: 192px;
+}
+
+input[name = "surname"]{
+    width: 227px;
+}
+
+input[name = "email"]{
+    width: 247px;
+}
+
+input[name = "submit"]{
+    background-color: #990000;
+    color: #fff;
+    display: block;
+    font-family: calibri;
+    width: 140px;
+    text-transform: uppercase;
+    padding: 10px;
+    text-align: center;
+    margin: 20px auto;
+    cursor: pointer;
+    font-size: 20px;
+    font-size: 20px;
+    
+}
