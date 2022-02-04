@@ -3,4 +3,11 @@ Currently, what has been implemented is the time analysis section only, not to g
 then have them choose the variables they would want to be included in the analysis. And because only the Time Series section is implemented, 
 this is done because the default data is longitudinal, we would need another tab that would allow for cross-sectional analysis.
 
+Still to be done:
+The idea going forward is to have the main page, be a welcome page, with 2 options, 
+  1. Longitudinal/Time Analysis
+  2. Cross-sectional Analysis
+  
+  then from these 2, It would take them to respective pages where they would be to import data and do their respective analysis.
+
 Run the app file to view the website
