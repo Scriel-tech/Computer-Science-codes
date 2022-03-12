@@ -1,0 +1,63 @@
+/*
+Smallest Common Multiple
+
+Find the smallest common multiple of the provided parameters that can be evenly divided by both, as well as by all sequential numbers in the range between these parameters.
+
+The range will be an array of two numbers that will not necessarily be in numerical order.
+
+For example, if given 1 and 3, find the smallest common multiple of both 1 and 3 that is also evenly divisible by all numbers between 1 and 3. The answer here would be 6.
+
+*/
+
+function findPrimes(num){
+  let base = num;
+  let primes = [];
+  let i = 2;
+  while(base!=1){
+
+    if(base%i == 0){
+      primes.push(i);
+      base = base/i;
+    }else{
+      i++;
+    }
+  }
+  return primes;
+}
+
+
+function smallestCommons(arr) {
+  arr = arr.sort(function(a,b){
+    return a-b;
+  })
+
+  let primes = {};
+
+  for(let i=arr[0]; i<arr[1]+1;i++){
+    if(i>=2){
+      let p = findPrimes(i);
+      let uniqP = p.filter((element, index, array) => array.indexOf(element) === index);
+      let combinedKey = "";
+      for(let key in primes){
+        combinedKey += key;
+      }
+      for(let j in uniqP){
+        if(RegExp(p[j]).test(combinedKey) == false){
+          primes[p[j]] = 1;
+        }else{
+          let primesCombined = p.join("");
+          let regex = RegExp(p[j],'g');
+          let numOfIimesPrimeRepeats  = primesCombined.match(regex).length;
+          let numOfTimesPrimeInPrimes = primes[p[j]];
+          if(numOfIimesPrimeRepeats > numOfTimesPrimeInPrimes){
+            primes[p[j]] += (numOfIimesPrimeRepeats - numOfTimesPrimeInPrimes);
+          }
+        }
+      }
+    }
+  }
+  return primes;
+}
+
+console.log(smallestCommons([2,10]));
+
