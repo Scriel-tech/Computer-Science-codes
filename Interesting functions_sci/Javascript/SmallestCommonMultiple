@@ -9,7 +9,7 @@ For example, if given 1 and 3, find the smallest common multiple of both 1 and 3
 
 */
 
-function findPrimes(num){
+function findPrimes(num){//This function is an intermediary function which finds the prime factorisation of a number.
   let base = num;
   let primes = [];
   let i = 2;
@@ -34,18 +34,22 @@ function smallestCommons(arr) {
   let primes = {};
 
   for(let i=arr[0]; i<arr[1]+1;i++){
+    //console.log(i);
     if(i>=2){
       let p = findPrimes(i);
       let uniqP = p.filter((element, index, array) => array.indexOf(element) === index);
-      let combinedKey = "";
+      
+      for(let j in p){
+        let combinedKey = "";
       for(let key in primes){
-        combinedKey += key;
+        combinedKey += " " + key;
       }
-      for(let j in uniqP){
         if(RegExp(p[j]).test(combinedKey) == false){
+          //console.log("part a")
           primes[p[j]] = 1;
         }else{
           let primesCombined = p.join("");
+          //console.log("primes COmbinded = ", primesCombined)
           let regex = RegExp(p[j],'g');
           let numOfIimesPrimeRepeats  = primesCombined.match(regex).length;
           let numOfTimesPrimeInPrimes = primes[p[j]];
@@ -55,9 +59,16 @@ function smallestCommons(arr) {
         }
       }
     }
+    //console.log(primes);
   }
-  return primes;
+  let soln = 1;
+  for(let key in primes){
+    soln *= Math.pow(Number(key),primes[key]);
+  }
+  //console.log(primes);
+  return soln;
 }
 
-console.log(smallestCommons([2,10]));
+console.log(smallestCommons([23,18]));
+
 
