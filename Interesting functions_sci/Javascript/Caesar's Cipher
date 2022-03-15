@@ -18,8 +18,8 @@ function rot13(str) {
     //console.log(str[l].codePointAt());
     let sym = str[l];
     let num = str[l].charCodeAt();
-    if(sym == " "){
-      soln+=" ";
+    if(num<65 || num>90){
+      soln+=sym;
     }
     else if( num > 77){
       let n = (num+13+64-90);
@@ -33,5 +33,5 @@ function rot13(str) {
   return soln;
 }
 
-console.log(rot13("SERR PBQR PNZC"));
+console.log(rot13("SERR PBQR PNZC!"));
 console.log("Z".charCodeAt());
