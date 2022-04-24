@@ -1,0 +1,4 @@
+This is a React App.
+The purpose of the app is to set alternating tine periods, the motivation being if you wanted to repeat an activity multiple times but with a break between each activity run.
+
+When you preview the index.html, you need to set the length of the session and the break, then hit play. You can pause, or reset the times.
